@@ -1,7 +1,8 @@
 
 select
     -- this is comment 
-    o.orderid,
+    {{ dbt_utils.generate_surrogate_key(['o.orderid', 'c.customerid','p.productid']) }} as sk_orders,
+     o.orderid,
     o.orderdate,
     o.shipdate,
     o.shipmode,
@@ -17,7 +18,11 @@ select
     p.productid,
     p.category,
     p.productname,
-    p.subcategory
+    p.subcategory,
+    {{ markup('ordersellipprice','ordercostprice') }} as markup,
+    d.delivery_team
 from {{ ref("raw_orders") }} as o
 left join {{ ref("raw_customers") }} as c on o.customerid = c.customerid
 left join {{ ref("raw_product") }} as p on o.productid = p.productid
+left join {{ ref('deliver_team') }} as d 
+on o.shipmode = d.shipmode
